@@ -1,3 +1,4 @@
+import { h } from 'preact';
 import { get as fetch }                                   from 'axios';
 import React, { Component, PureComponent, DOM, Children } from 'react';
 import PropTypes                                          from 'prop-types';
