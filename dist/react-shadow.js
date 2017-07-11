@@ -43,14 +43,14 @@ module.exports =
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	module.exports = __webpack_require__(1);
 
 
-/***/ },
+/***/ }),
 /* 1 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -458,9 +458,9 @@ module.exports =
 
 	exports.default = withContext(defaultContextTypes);
 
-/***/ },
+/***/ }),
 /* 2 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -486,7 +486,7 @@ module.exports =
 	            if ((child = stack.pop()) && void 0 !== child.pop) for (i = child.length; i--;) {
 	                stack.push(child[i]);
 	            } else {
-	                if (child === !0 || child === !1) child = null;
+	                if ('boolean' == typeof child) child = null;
 	                if (simple = 'function' != typeof nodeName) if (null == child) child = '';else if ('number' == typeof child) child = String(child);else if ('string' != typeof child) simple = !1;
 	                if (simple && lastSimple) children[children.length - 1] += child;else if (children === EMPTY_CHILDREN) children = [child];else children.push(child);
 	                lastSimple = simple;
@@ -508,7 +508,7 @@ module.exports =
 	        return h(vnode.nodeName, extend(extend({}, vnode.attributes), props), arguments.length > 2 ? [].slice.call(arguments, 2) : vnode.children);
 	    }
 	    function enqueueRender(component) {
-	        if (!component.__d && (component.__d = !0) && 1 == items.push(component)) (options.debounceRendering || setTimeout)(rerender);
+	        if (!component.__d && (component.__d = !0) && 1 == items.push(component)) (options.debounceRendering || defer)(rerender);
 	    }
 	    function rerender() {
 	        var p,
@@ -539,7 +539,8 @@ module.exports =
 	        return node;
 	    }
 	    function removeNode(node) {
-	        if (node.parentNode) node.parentNode.removeChild(node);
+	        var parentNode = node.parentNode;
+	        if (parentNode) parentNode.removeChild(node);
 	    }
 	    function setAccessor(node, name, old, value, isSvg) {
 	        if ('className' === name) name = 'class';
@@ -552,7 +553,7 @@ module.exports =
 	                if ('string' != typeof old) for (var i in old) {
 	                    if (!(i in value)) node.style[i] = '';
 	                }for (var i in value) {
-	                    node.style[i] = 'number' == typeof value[i] && IS_NON_DIMENSIONAL.test(i) === !1 ? value[i] + 'px' : value[i];
+	                    node.style[i] = 'number' == typeof value[i] && !1 === IS_NON_DIMENSIONAL.test(i) ? value[i] + 'px' : value[i];
 	                }
 	            }
 	        } else if ('dangerouslySetInnerHTML' === name) {
@@ -566,10 +567,10 @@ module.exports =
 	            (node.__l || (node.__l = {}))[name] = value;
 	        } else if ('list' !== name && 'type' !== name && !isSvg && name in node) {
 	            setProperty(node, name, null == value ? '' : value);
-	            if (null == value || value === !1) node.removeAttribute(name);
+	            if (null == value || !1 === value) node.removeAttribute(name);
 	        } else {
 	            var ns = isSvg && name !== (name = name.replace(/^xlink\:?/, ''));
-	            if (null == value || value === !1) {
+	            if (null == value || !1 === value) {
 	                if (ns) node.removeAttributeNS('http://www.w3.org/1999/xlink', name.toLowerCase());else node.removeAttribute(name);
 	            } else if ('function' != typeof value) if (ns) node.setAttributeNS('http://www.w3.org/1999/xlink', name.toLowerCase(), value);else node.setAttribute(name, value);
 	        }
@@ -605,8 +606,8 @@ module.exports =
 	    function idiff(dom, vnode, context, mountAll, componentRoot) {
 	        var out = dom,
 	            prevSvgMode = isSvgMode;
-	        if (null == vnode) vnode = '';
-	        if ('string' == typeof vnode) {
+	        if (null == vnode || 'boolean' == typeof vnode) vnode = '';
+	        if ('string' == typeof vnode || 'number' == typeof vnode) {
 	            if (dom && void 0 !== dom.splitText && dom.parentNode && (!dom._component || componentRoot)) {
 	                if (dom.nodeValue != vnode) dom.nodeValue = vnode;
 	            } else {
@@ -619,10 +620,12 @@ module.exports =
 	            out.__preactattr_ = !0;
 	            return out;
 	        }
-	        if ('function' == typeof vnode.nodeName) return buildComponentFromVNode(dom, vnode, context, mountAll);
-	        isSvgMode = 'svg' === vnode.nodeName ? !0 : 'foreignObject' === vnode.nodeName ? !1 : isSvgMode;
-	        if (!dom || !isNamedNode(dom, String(vnode.nodeName))) {
-	            out = createNode(String(vnode.nodeName), isSvgMode);
+	        var vnodeName = vnode.nodeName;
+	        if ('function' == typeof vnodeName) return buildComponentFromVNode(dom, vnode, context, mountAll);
+	        isSvgMode = 'svg' === vnodeName ? !0 : 'foreignObject' === vnodeName ? !1 : isSvgMode;
+	        vnodeName = String(vnodeName);
+	        if (!dom || !isNamedNode(dom, vnodeName)) {
+	            out = createNode(vnodeName, isSvgMode);
 	            if (dom) {
 	                while (dom.firstChild) {
 	                    out.appendChild(dom.firstChild);
@@ -631,8 +634,14 @@ module.exports =
 	            }
 	        }
 	        var fc = out.firstChild,
-	            props = out.__preactattr_ || (out.__preactattr_ = {}),
+	            props = out.__preactattr_,
 	            vchildren = vnode.children;
+	        if (null == props) {
+	            props = out.__preactattr_ = {};
+	            for (var a = out.attributes, i = a.length; i--;) {
+	                props[a[i].name] = a[i].value;
+	            }
+	        }
 	        if (!hydrating && vchildren && 1 === vchildren.length && 'string' == typeof vchildren[0] && null != fc && void 0 !== fc.splitText && null == fc.nextSibling) {
 	            if (fc.nodeValue != vchildren[0]) fc.nodeValue = vchildren[0];
 	        } else if (vchildren && vchildren.length || null != fc) innerDiffNode(out, vchildren, context, mountAll, hydrating || null != props.dangerouslySetInnerHTML);
@@ -643,6 +652,7 @@ module.exports =
 	    function innerDiffNode(dom, vchildren, context, mountAll, isHydrating) {
 	        var j,
 	            c,
+	            f,
 	            vchild,
 	            child,
 	            originalChildren = dom.childNodes,
@@ -681,7 +691,8 @@ module.exports =
 	                    break;
 	                }
 	            }child = idiff(child, vchild, context, mountAll);
-	            if (child && child !== dom) if (i >= len) dom.appendChild(child);else if (child !== originalChildren[i]) if (child === originalChildren[i + 1]) removeNode(originalChildren[i]);else dom.insertBefore(child, originalChildren[i] || null);
+	            f = originalChildren[i];
+	            if (child && child !== dom && child !== f) if (null == f) dom.appendChild(child);else if (child === f.nextSibling) removeNode(f);else dom.insertBefore(child, f);
 	        }
 	        if (keyedLen) for (var i in keyed) {
 	            if (void 0 !== keyed[i]) recollectNodeTree(keyed[i], !1);
@@ -693,7 +704,7 @@ module.exports =
 	        var component = node._component;
 	        if (component) unmountComponent(component);else {
 	            if (null != node.__preactattr_ && node.__preactattr_.ref) node.__preactattr_.ref(null);
-	            if (unmountOnly === !1 || null == node.__preactattr_) removeNode(node);
+	            if (!1 === unmountOnly || null == node.__preactattr_) removeNode(node);
 	            removeChildren(node);
 	        }
 	    }
@@ -754,7 +765,7 @@ module.exports =
 	            if (!component.__p) component.__p = component.props;
 	            component.props = props;
 	            component.__x = !1;
-	            if (0 !== opts) if (1 === opts || options.syncComponentUpdates !== !1 || !component.base) renderComponent(component, 1, mountAll);else enqueueRender(component);
+	            if (0 !== opts) if (1 === opts || !1 !== options.syncComponentUpdates || !component.base) renderComponent(component, 1, mountAll);else enqueueRender(component);
 	            if (component.__r) component.__r(component);
 	        }
 	    }
@@ -778,7 +789,7 @@ module.exports =
 	                component.props = previousProps;
 	                component.state = previousState;
 	                component.context = previousContext;
-	                if (2 !== opts && component.shouldComponentUpdate && component.shouldComponentUpdate(props, state, context) === !1) skip = !0;else if (component.componentWillUpdate) component.componentWillUpdate(props, state, context);
+	                if (2 !== opts && component.shouldComponentUpdate && !1 === component.shouldComponentUpdate(props, state, context)) skip = !0;else if (component.componentWillUpdate) component.componentWillUpdate(props, state, context);
 	                component.props = props;
 	                component.state = state;
 	                component.context = context;
@@ -902,6 +913,7 @@ module.exports =
 	    var options = {};
 	    var stack = [];
 	    var EMPTY_CHILDREN = [];
+	    var defer = 'function' == typeof Promise ? Promise.resolve().then.bind(Promise.resolve()) : setTimeout;
 	    var IS_NON_DIMENSIONAL = /acit|ex(?:s|g|n|p|$)|rph|ows|mnc|ntw|ine[ch]|zoo|^ord/i;
 	    var items = [];
 	    var mounts = [];
@@ -936,17 +948,17 @@ module.exports =
 	}();
 	//# sourceMappingURL=preact.js.map
 
-/***/ },
+/***/ }),
 /* 3 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	module.exports = __webpack_require__(4);
 
-/***/ },
+/***/ }),
 /* 4 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -995,9 +1007,9 @@ module.exports =
 	// Allow use of default import syntax in TypeScript
 	module.exports.default = axios;
 
-/***/ },
+/***/ }),
 /* 5 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -1297,9 +1309,9 @@ module.exports =
 	  trim: trim
 	};
 
-/***/ },
+/***/ }),
 /* 6 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -1313,9 +1325,9 @@ module.exports =
 	  };
 	};
 
-/***/ },
+/***/ }),
 /* 7 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -1403,9 +1415,9 @@ module.exports =
 
 	module.exports = Axios;
 
-/***/ },
+/***/ }),
 /* 8 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -1475,9 +1487,9 @@ module.exports =
 	  }
 	};
 
-/***/ },
+/***/ }),
 /* 9 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -1492,9 +1504,9 @@ module.exports =
 	  });
 	};
 
-/***/ },
+/***/ }),
 /* 10 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -1549,9 +1561,9 @@ module.exports =
 
 	module.exports = InterceptorManager;
 
-/***/ },
+/***/ }),
 /* 11 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
 
@@ -1610,9 +1622,9 @@ module.exports =
 	};
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)))
 
-/***/ },
+/***/ }),
 /* 12 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -1802,9 +1814,9 @@ module.exports =
 	    return 0;
 	};
 
-/***/ },
+/***/ }),
 /* 13 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -1827,9 +1839,9 @@ module.exports =
 	  return data;
 	};
 
-/***/ },
+/***/ }),
 /* 14 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
 
@@ -1989,9 +2001,9 @@ module.exports =
 	};
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)))
 
-/***/ },
+/***/ }),
 /* 15 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -2014,9 +2026,9 @@ module.exports =
 	  }
 	};
 
-/***/ },
+/***/ }),
 /* 16 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -2036,9 +2048,9 @@ module.exports =
 	  return enhanceError(error, config, code, response);
 	};
 
-/***/ },
+/***/ }),
 /* 17 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -2061,9 +2073,9 @@ module.exports =
 	  return error;
 	};
 
-/***/ },
+/***/ }),
 /* 18 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -2127,9 +2139,9 @@ module.exports =
 	  return url;
 	};
 
-/***/ },
+/***/ }),
 /* 19 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -2171,9 +2183,9 @@ module.exports =
 	  return parsed;
 	};
 
-/***/ },
+/***/ }),
 /* 20 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -2239,9 +2251,9 @@ module.exports =
 	  };
 	}();
 
-/***/ },
+/***/ }),
 /* 21 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -2279,9 +2291,9 @@ module.exports =
 
 	module.exports = btoa;
 
-/***/ },
+/***/ }),
 /* 22 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -2337,9 +2349,9 @@ module.exports =
 	  };
 	}();
 
-/***/ },
+/***/ }),
 /* 23 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -2358,9 +2370,9 @@ module.exports =
 	  );
 	};
 
-/***/ },
+/***/ }),
 /* 24 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -2376,9 +2388,9 @@ module.exports =
 	  return baseURL.replace(/\/+$/, '') + '/' + relativeURL.replace(/^\/+/, '');
 	};
 
-/***/ },
+/***/ }),
 /* 25 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -2409,9 +2421,9 @@ module.exports =
 	  };
 	};
 
-/***/ },
+/***/ }),
 /* 26 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(process) {'use strict';
 
@@ -3071,9 +3083,9 @@ module.exports =
 	//# sourceMappingURL=preact-compat.js.map
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)))
 
-/***/ },
+/***/ }),
 /* 27 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
 
@@ -3106,9 +3118,9 @@ module.exports =
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)))
 
-/***/ },
+/***/ }),
 /* 28 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -3604,9 +3616,9 @@ module.exports =
 	};
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)))
 
-/***/ },
+/***/ }),
 /* 29 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	"use strict";
 
@@ -3647,9 +3659,9 @@ module.exports =
 
 	module.exports = emptyFunction;
 
-/***/ },
+/***/ }),
 /* 30 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright (c) 2013-present, Facebook, Inc.
@@ -3708,9 +3720,9 @@ module.exports =
 	module.exports = invariant;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)))
 
-/***/ },
+/***/ }),
 /* 31 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2014-2015, Facebook, Inc.
@@ -3780,9 +3792,9 @@ module.exports =
 	module.exports = warning;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)))
 
-/***/ },
+/***/ }),
 /* 32 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -3799,9 +3811,9 @@ module.exports =
 
 	module.exports = ReactPropTypesSecret;
 
-/***/ },
+/***/ }),
 /* 33 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -3868,9 +3880,9 @@ module.exports =
 	module.exports = checkPropTypes;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)))
 
-/***/ },
+/***/ }),
 /* 34 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Copyright 2013-present, Facebook, Inc.
@@ -3927,9 +3939,9 @@ module.exports =
 	  return ReactPropTypes;
 	};
 
-/***/ },
+/***/ }),
 /* 35 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
 
@@ -12718,5 +12730,5 @@ module.exports =
 	    }
 	}).call(undefined);
 
-/***/ }
+/***/ })
 /******/ ]);

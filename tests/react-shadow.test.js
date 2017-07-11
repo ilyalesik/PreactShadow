@@ -1,3 +1,4 @@
+import { h } from 'preact';
 import test from 'ava';
 import React, { Component } from 'react';
 import ShadowDOM from '../src/react-shadow';
